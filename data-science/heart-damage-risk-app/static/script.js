@@ -1,4 +1,4 @@
-document.getElementById('uploadForm').addEventListener('submit', async function(event) {
+document.getElementById('uploadForm').addEventListener('submit', async function (event) {
     event.preventDefault(); // Предотвращаем стандартную отправку формы
 
     const fileInput = this.querySelector('input[type="file"]');
@@ -14,13 +14,19 @@ document.getElementById('uploadForm').addEventListener('submit', async function(
         });
 
         const result = await response.json();
+        const errorValue = result['error'];
 
-        // Отображаем результат на странице
-        const resultDiv = document.getElementById('resultBox');
-        resultDiv.style.display = 'block';
-        resultDiv.innerHTML = '<pre>' + JSON.stringify(result, null, 2) + '</pre>';
+        if (errorValue !== undefined && errorValue.trim().length > 0) {
+            document.getElementById('errorMessage').innerText = errorValue;
+        } else {
+            const resultDiv = document.getElementById('resultBox');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<code">' + result + '</code>';
+            // resultDiv.innerHTML = '<pre>' + result + '</pre>';
+            // resultDiv.innerHTML = '<pre>' + JSON.stringify(result, null, 2) + '</pre>';
+            document.getElementById('errorMessage').innerText = ''; // очищаем ошибку
+        }
     } catch (err) {
-        console.error(err.message);
-        alert('Возникла ошибка при обработке файла.');
+        document.getElementById('errorMessage').innerText = err.message || 'Возникла неизвестная ошибка.';
     }
 });

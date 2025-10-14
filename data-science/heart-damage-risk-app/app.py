@@ -1,9 +1,11 @@
+import pickle
+
 import pandas as pd
-import requests
 from fastapi import FastAPI, Request, File, UploadFile
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from starlette.responses import JSONResponse
 
 app = FastAPI()
 
@@ -14,15 +16,86 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
 
+def fill_na_with_median(df: pd.DataFrame):
+    """
+    Найдет все колонки датасета, содержащие пустые значения (NaN), и заполнит их медианой каждой колонки.
+
+    Parameters:
+    -----------
+    df: pandas.DataFrame
+        Входной датасет.
+
+    Returns:
+    --------
+    filled_df: pandas.DataFrame
+        Датасет с заполненными пустыми значениями.
+    """
+    # Сначала найдем все колонки, содержащие NaN
+    nan_columns = df.columns[df.isnull().any()]
+
+    # Для каждой колонки с пустыми значениями заполним их медианой
+    for col in nan_columns:
+        median_val = df[col].median()
+        df[col] = df[col].fillna(median_val)
+
+    return df
+
+
+def prepare_data(df: pd.DataFrame):
+    """
+    Подготовит датасет к использованию с обученной моделью
+
+    Parameters:
+    -----------
+    df: pandas.DataFrame
+        Входной датасет.
+
+    Returns:
+    --------
+    filled_df: pandas.DataFrame
+        Подготовленный датасет.
+    """
+    # Переименуем столбцы
+    df.rename(columns=lambda x: x.lower().replace(" ", "_"), inplace=True)
+
+    # Заполним пропуски
+    df = fill_na_with_median(df)
+
+    # Поменяем значения для признака gender
+    df.loc[df['gender'] == 'Male', 'gender'] = '1.0'
+    df.loc[df['gender'] == 'Female', 'gender'] = '0.0'
+
+    return df
+
+
 @app.post("/predict/")
 async def predict(file: UploadFile = File(...)):
-    df = pd.read_csv(file.file)
-    response = requests.post("https://example.com/predict", json=df.to_dict())
+    try:
+        df_original = pd.read_csv(file.file, index_col=0)
+        df = df_original.copy().set_index("id")
 
-    if response.status_code != 200:
-        return {"error": f"Ошибка при обращении к внешнему сервису: {response.text}"}
+        # Подготовим данные
+        df_prepared = prepare_data(df)
 
-    return response.json()
+        # Загрузим обученную модель
+        with open('model.pkl', 'rb') as f:
+            model = pickle.load(f)
+
+        # Предсказание с помощью восстановленной модели
+        predictions = model.predict_proba(df_prepared.copy())[:,1]
+        # predictions = model.predict(df_prepared.copy())
+        df_prepared['prediction'] = predictions
+        df_prepared['prediction_%'] = round(df_prepared['prediction'], ndigits=4) * 100
+        df_prepared['prediction_%'] = df_prepared['prediction_%'].apply(lambda x: str(x) + '%')
+
+        # Возврат колонок A и B в формате JSON
+        json_output = df_prepared['prediction_%'].sample(10).to_json(orient='index')
+        # json_output = df_prepared['prediction_%'].sample(10).to_json(orient='index', indent=4, index=True)
+
+        # return json_output
+        # return JSONResponse(df_prepared['prediction_%'].sample(10))
+    except Exception as e:
+        return {"error": f"Ошибка при обработке датасета: {e}"}
 
 
 # Маршрут для главной страницы
