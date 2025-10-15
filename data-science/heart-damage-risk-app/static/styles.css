@@ -9,7 +9,7 @@ form {
     padding: 20px;
     border-radius: 10px;
     background-color: #fafafa;
-    box-shadow: 0 0 10px rgba(0,0,0,.1);
+    box-shadow: 0 0 10px rgba(0, 0, 0, .1);
 }
 
 input[type='submit'] {
@@ -29,11 +29,32 @@ input[type='submit'] {
     padding: 20px;
     background-color: #fff;
     border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0,0,0,.1);
+    box-shadow: 0 0 10px rgba(0, 0, 0, .1);
 }
 
 /* Ошибка внизу формы */
 #errorMessage {
     color: red;
     margin-bottom: 20px;
+}
+
+.table-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: auto;
+}
+
+table {
+    border-collapse: collapse;
+}
+
+th, td {
+    border: 1px solid black;
+    padding: 8px;
+    text-align: left;
+}
+
+th {
+    background-color: lightgray;
 }

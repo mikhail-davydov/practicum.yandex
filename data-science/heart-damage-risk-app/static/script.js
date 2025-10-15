@@ -19,11 +19,29 @@ document.getElementById('uploadForm').addEventListener('submit', async function 
         if (errorValue !== undefined && errorValue.trim().length > 0) {
             document.getElementById('errorMessage').innerText = errorValue;
         } else {
-            const resultDiv = document.getElementById('resultBox');
-            resultDiv.style.display = 'block';
-            resultDiv.innerHTML = '<code">' + result + '</code>';
-            // resultDiv.innerHTML = '<pre>' + result + '</pre>';
-            // resultDiv.innerHTML = '<pre>' + JSON.stringify(result, null, 2) + '</pre>';
+            const jsonTable = document.getElementById('jsonTable');
+            jsonTable.style.display = 'table';
+
+            // Получаем ссылку на tbody
+            const tableBody = document.getElementById('tableBody');
+
+            // Найдем все строки в таблице и удалим их одну за другой
+            while (tableBody.firstChild) {
+                tableBody.removeChild(tableBody.firstChild);
+            }
+
+            // Перебираем ключи и значения из JSON
+            for (const [key, value] of Object.entries(JSON.parse(result))) {
+                // Формируем новую строку таблицы
+                const row = `
+                    <tr>
+                        <td>${key}</td>
+                        <td>${value}</td>
+                    </tr>
+                `;
+                // Добавляем строку в таблицу
+                tableBody.insertAdjacentHTML('beforeend', row);
+            }
             document.getElementById('errorMessage').innerText = ''; // очищаем ошибку
         }
     } catch (err) {

@@ -7,14 +7,26 @@
 </head>
 <body>
     <h1>Загрузите CSV-файл для анализа</h1>
+
     <form id="uploadForm" enctype="multipart/form-data">
         <input type="file" accept=".csv" required><br/><br/>
         <input type="submit" value="Отправить файл"/>
     </form>
+
     <p id="errorMessage"></p> <!-- Элемент для отображения ошибок -->
 
     <!-- Блок для отображения результата -->
-    <div class="result-box" style="display:none;" id="resultBox"></div>
+    <div class="table-container">
+        <table id="jsonTable" style="display:none;">
+            <thead>
+                <tr>
+                    <th>ID пациента</th>
+                    <th>Риск поражения сердца (%)</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+    </div>
 
     <script src="/static/script.js"></script>
 </body>

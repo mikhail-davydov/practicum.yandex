@@ -5,7 +5,6 @@ from fastapi import FastAPI, Request, File, UploadFile
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from starlette.responses import JSONResponse
 
 app = FastAPI()
 
@@ -75,6 +74,7 @@ async def predict(file: UploadFile = File(...)):
         df = df_original.copy().set_index("id")
 
         # Подготовим данные
+        pd.set_option("display.float_format", "{:,.2f}".format)
         df_prepared = prepare_data(df)
 
         # Загрузим обученную модель
@@ -82,18 +82,14 @@ async def predict(file: UploadFile = File(...)):
             model = pickle.load(f)
 
         # Предсказание с помощью восстановленной модели
-        predictions = model.predict_proba(df_prepared.copy())[:,1]
+        predictions = model.predict_proba(df_prepared.copy())[:, 1]
         # predictions = model.predict(df_prepared.copy())
+
         df_prepared['prediction'] = predictions
-        df_prepared['prediction_%'] = round(df_prepared['prediction'], ndigits=4) * 100
+        df_prepared['prediction_%'] = (df_prepared['prediction'] * 100).round(2)
         df_prepared['prediction_%'] = df_prepared['prediction_%'].apply(lambda x: str(x) + '%')
 
-        # Возврат колонок A и B в формате JSON
-        json_output = df_prepared['prediction_%'].sample(10).to_json(orient='index')
-        # json_output = df_prepared['prediction_%'].sample(10).to_json(orient='index', indent=4, index=True)
-
-        # return json_output
-        # return JSONResponse(df_prepared['prediction_%'].sample(10))
+        return df_prepared['prediction_%'].sample(10).to_json(orient='index')
     except Exception as e:
         return {"error": f"Ошибка при обработке датасета: {e}"}
 
