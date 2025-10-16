@@ -31,12 +31,13 @@ document.getElementById('uploadForm').addEventListener('submit', async function 
             }
 
             // Перебираем ключи и значения из JSON
+            const percentCharacter = '%';
             for (const [key, value] of Object.entries(JSON.parse(result))) {
                 // Формируем новую строку таблицы
                 const row = `
                     <tr>
                         <td>${key}</td>
-                        <td>${value}</td>
+                        <td>${value}${percentCharacter}</td>
                     </tr>
                 `;
                 // Добавляем строку в таблицу

@@ -87,7 +87,6 @@ async def predict(file: UploadFile = File(...)):
 
         df_prepared['prediction'] = predictions
         df_prepared['prediction_%'] = (df_prepared['prediction'] * 100).round(2)
-        df_prepared['prediction_%'] = df_prepared['prediction_%'].apply(lambda x: str(x) + '%')
 
         return df_prepared['prediction_%'].sample(10).to_json(orient='index')
     except Exception as e:
