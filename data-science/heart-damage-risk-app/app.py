@@ -6,13 +6,27 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-app = FastAPI()
-
-# Монтируем папку static для обработки статики
-app.mount("/static", StaticFiles(directory="static"), name="static")
-
 # Шаблоны Jinja2 для рендеринга HTML-шаблонов
 templates = Jinja2Templates(directory="templates")
+
+
+def create_app(test_config=None):
+    is_test = True if (test_config and test_config.get('TESTING', False) == True) else False
+
+    app = FastAPI()
+
+    if not is_test:
+        # Монтируем папку static для обработки статики
+        app.mount("/static", StaticFiles(directory="static"), name="static")
+
+    # Загрузим обученную модель
+    with open('model.pkl', 'rb') as f:
+        model = pickle.load(f)
+
+    return app, model
+
+
+app, model = create_app()
 
 
 def fill_na_with_median(df: pd.DataFrame):
@@ -77,18 +91,14 @@ async def predict(file: UploadFile = File(...)):
         pd.set_option("display.float_format", "{:,.2f}".format)
         df_prepared = prepare_data(df)
 
-        # Загрузим обученную модель
-        with open('model.pkl', 'rb') as f:
-            model = pickle.load(f)
-
         # Предсказание с помощью восстановленной модели
-        predictions = model.predict_proba(df_prepared.copy())[:, 1]
-        # predictions = model.predict(df_prepared.copy())
+        predictions = model.predict(df_prepared.copy())
+        predictions_proba = model.predict_proba(df_prepared.copy())[:, 1]
 
         df_prepared['prediction'] = predictions
-        df_prepared['prediction_%'] = (df_prepared['prediction'] * 100).round(2)
+        df_prepared['prediction_proba'] = (predictions_proba * 100).round(2)
 
-        return df_prepared['prediction_%'].sample(10).to_json(orient='index')
+        return df_prepared['prediction_proba'].sample(10).to_json(orient='index')
     except Exception as e:
         return {"error": f"Ошибка при обработке датасета: {e}"}
 
@@ -97,12 +107,3 @@ async def predict(file: UploadFile = File(...)):
 @app.get("/", response_class=HTMLResponse)
 async def root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
-
-# @app.get("/")
-# async def root():
-#     return {"message": "Hello World"}
-#
-#
-# @app.get("/hello/{name}")
-# async def say_hello(name: str):
-#     return {"message": f"Hello {name}"}
