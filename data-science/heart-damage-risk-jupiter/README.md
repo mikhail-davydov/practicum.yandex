@@ -36,7 +36,7 @@
 
 ## Стек
 
-- Python
+- Python 3.12
 - Pandas
 - numpy
 - Scikit-learn
