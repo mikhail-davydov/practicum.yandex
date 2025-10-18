@@ -42,6 +42,7 @@ async def predict(file: UploadFile = File(...), show_full: bool = Query(True), s
 
         return df.to_json(orient='index') if show_full else df.sample(10).to_json(orient='index')
     except Exception as e:
+        log.error(e, exc_info=True)
         return {"error": f"Ошибка при обработке датасета: {e}"}
 
 
