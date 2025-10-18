@@ -1,14 +1,29 @@
 document.getElementById('uploadForm').addEventListener('submit', async function (event) {
     event.preventDefault(); // Предотвращаем стандартную отправку формы
 
-    const fileInput = this.querySelector('input[type="file"]');
+    const fileInput = document.getElementById('fileInput');
     const file = fileInput.files[0];
 
+    const showFull = document.getElementById('show_full').checked;
+    const showPercent = document.getElementById('show_percent').checked;
+
     const data = new FormData();
-    data.append('file', file); // Добавляем файл в объект FormData
+    data.append('file', file);
+
+    const params = {
+        show_full: showFull,
+        show_percent: showPercent
+    };
+
+    const queryString = Object.keys(params)
+        .map(key => encodeURIComponent(key) + '=' + encodeURIComponent(params[key]))
+        .join('&');
+
+    const url = `/predict?${queryString}`;
+
 
     try {
-        const response = await fetch('/predict/', {
+        const response = await fetch(url, {
             method: 'POST',
             body: data,
         });
@@ -32,12 +47,21 @@ document.getElementById('uploadForm').addEventListener('submit', async function 
 
             // Перебираем ключи и значения из JSON
             const percentCharacter = '%';
-            for (const [key, value] of Object.entries(JSON.parse(result))) {
+            for (const [key, originalValue] of Object.entries(JSON.parse(result))) {
+                let result = originalValue;
+                if (showPercent) {
+                    // Если showPercent=true, добавляем знак "%" к исходному значению
+                    result = result + '%';
+                } else {
+                    // Если showPercent=false, преобразуем "1" в "Да", а "0" в "Нет"
+                    result = result === 1 ? "Да" : "Нет";
+                }
+
                 // Формируем новую строку таблицы
                 const row = `
                     <tr>
                         <td>${key}</td>
-                        <td>${value}${percentCharacter}</td>
+                        <td>${result}</td>
                     </tr>
                 `;
                 // Добавляем строку в таблицу

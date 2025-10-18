@@ -1,5 +1,5 @@
 import pandas as pd
-from fastapi import Request, File, UploadFile
+from fastapi import Request, UploadFile, File, Query
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
@@ -13,13 +13,18 @@ log = get_logger(__name__)
 # Шаблоны Jinja2 для рендеринга HTML-шаблонов
 templates = Jinja2Templates(directory="templates")
 
+# Создаем приложение
 app, model = create_app()
 
 
-@app.post("/predict/")
-async def predict(file: UploadFile = File(...)):
+@app.post("/predict")
+async def predict(file: UploadFile = File(...), show_full: bool = Query(None), show_percent: bool = Query(None)):
     try:
-        df_original = pd.read_csv(file.file, index_col=0)
+        log.info(f"request, show_full: {show_full}, show_percent: {show_percent}")
+
+        csv_buffer = file.file
+
+        df_original = pd.read_csv(csv_buffer, index_col=0)
         df = df_original.copy().set_index("id")
 
         # Подготовим данные
@@ -33,16 +38,9 @@ async def predict(file: UploadFile = File(...)):
         df_prepared['prediction'] = predictions
         df_prepared['prediction_proba'] = (predictions_proba * 100).round(2)
 
-        predictions_proba_df = df_prepared[['prediction', 'prediction_proba']].head().to_json()
-        log.info(f"predictions_proba_df no orient: {predictions_proba_df}")
+        df = df_prepared['prediction_proba'] if show_percent else df_prepared['prediction']
 
-        predictions_proba_df = df_prepared[['prediction', 'prediction_proba']].head().to_json(orient='index')
-        log.info(f"predictions_proba_df orient=index: {predictions_proba_df}")
-
-        predictions_proba_df = df_prepared[['prediction', 'prediction_proba']].head().to_json(orient='records')
-        log.info(f"predictions_proba_df orient=records: {predictions_proba_df}")
-
-        return df_prepared['prediction_proba'].sample(10).to_json(orient='index')
+        return df.to_json(orient='index') if show_full else df.sample(10).to_json(orient='index')
     except Exception as e:
         return {"error": f"Ошибка при обработке датасета: {e}"}
 

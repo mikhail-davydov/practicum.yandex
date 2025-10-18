@@ -1,11 +1,15 @@
-### /predict
+@showFull=true
+@showPercent=false
 
-POST http://127.0.0.1:8000/predict/
+### /predict
+POST http://127.0.0.1:8000/predict?
+    show_full={{showFull}}&
+    show_percent={{showPercent}}
 Content-Type: multipart/form-data; boundary=WebAppBoundary
 
 --WebAppBoundary
 Content-Disposition: form-data; name="file"; filename="data.csv"
 Content-Type: application/json
 
-< ./.private/heart_test.csv
+< .private/heart_test.csv
 --WebAppBoundary--
