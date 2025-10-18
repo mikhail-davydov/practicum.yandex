@@ -18,7 +18,7 @@ app, model = create_app()
 
 
 @app.post("/predict")
-async def predict(file: UploadFile = File(...), show_full: bool = Query(None), show_percent: bool = Query(None)):
+async def predict(file: UploadFile = File(...), show_full: bool = Query(True), show_percent: bool = Query(False)):
     try:
         log.info(f"request, show_full: {show_full}, show_percent: {show_percent}")
 
