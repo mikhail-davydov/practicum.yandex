@@ -32,4 +32,4 @@ docker logs custom-jupyter-spark
 После запуска контейнера в логах контейнера можно увидеть ссылку на Jupyter Notebook (http://localhost:8888). Для использования с IDE сконфигурировать external server в настройках IDE, используя указанную ссылку.
 
 Пример настройки для PyCharm:
-![ide-external-server-settings.png](ide-external-server-settings.png)
+![ide-external-server-settings.png](./ide-external-server-settings.png)
