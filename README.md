@@ -4,4 +4,5 @@
 Репозиторий для хранения решений задач из курсов Yandex Practicum
 
 ## Course Links
-[ [Data Science](./data-science/README.md) ], курс Data Science
+- [Docker](./docker/README.md), сбоник полезных Dockerfiles для использования в проектах
+- [Data Science](./data-science/README.md), курс Data Science
