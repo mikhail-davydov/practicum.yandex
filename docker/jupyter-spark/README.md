@@ -11,7 +11,7 @@ docker build -t custom-jupyter-spark:latest .
 
 И запустить контейнер с открытым портом для Jupyter Notebook
 ```bash
-docker run -it --rm -p 8888:8888 -v ${PWD}:/home/jovyan/work custom-jupyter-spark:latest
+docker run -d -it --rm -p 8888:8888 -v ${PWD}:/home/jovyan/work --name custom-jupyter-spark custom-jupyter-spark:latest
 ```
 
 Остановить контейнер можно 
